@@ -48,7 +48,7 @@ const LandingPage = () => {
         </div>
 
         <div className='lg:w-5/12 lg:flex hidden justify-center'>
-          <div className='w-72 sm:w-80 lg:w-96 rounded-3xl overflow-hidden'>
+          <div className='w-72 sm:w-80 lg:w-96 rounded-3xl overflow-hidden '>
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -58,7 +58,7 @@ const LandingPage = () => {
             <Image 
               src={assets.home_cat} 
               alt='cat picture' 
-              className='w-full rounded-3xl object-cover' 
+              className='w-full rounded-3xl object-cover shadow-5xl shadow-orange-300/40 relative' 
               width={350}
               height={350}
             />

@@ -17,6 +17,7 @@ const AllPetsPageClient = () => {
   const [pets, setPets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [dataSource, setDataSource] = useState('api')
   
   // Get URL parameters and router instance
   const searchParams = useSearchParams()
@@ -93,14 +94,14 @@ const AllPetsPageClient = () => {
           location
         })
         
-        const cachedData = getFromSessionStorage(cacheKey)
+        // const cachedData = getFromSessionStorage(cacheKey)
         
         //If cached data exists, use it
-        if (cachedData) {
-          setPets(cachedData)
-          setLoading(false)
-          return
-        }
+        // if (cachedData) {
+        //  setPets(cachedData)
+        //  setLoading(false)
+        //  return
+        //}
         
         
         const response = await fetch(url)
@@ -109,15 +110,19 @@ const AllPetsPageClient = () => {
         }
         
         const data = await response.json()
-        
-        if (data.pets && Array.isArray(data.pets)) {
-          // Save the fetched data to session storage (cache for 30 minutes)
-          saveToSessionStorage(cacheKey, data.pets, 30)
-          setPets(data.pets)
-        } else {
 
-          setPets([])
-        }
+      if (data.source === "fallback") {
+        setDataSource('fallback')
+      } else {
+        setDataSource('api')
+      }
+
+      if (data.pets && Array.isArray(data.pets)) {
+        saveToSessionStorage(cacheKey, data.pets, 30)
+        setPets(data.pets)
+      } else {
+        setPets([])
+}
       } catch (err) {
 
         setError(err.message)
@@ -168,6 +173,12 @@ const AllPetsPageClient = () => {
 
       
       <FilterButtons activeType={type || 'all'} />
+
+      {dataSource === 'fallback' && (
+        <div className="bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-3 rounded-lg text-center mb-4">
+          ⚠️ The Petfinder API was officially decommissioned on December 2, 2025. Showing sample pets instead.
+        </div>
+      )}
       
       {error ? (
         <div className="text-center py-10 text-red-500">

@@ -22,6 +22,7 @@ import location from './location.png';
 import phone from './phone.png';
 import menu from './menu-black.png';
 import close from './close-black.png';
+import catyoyo from './catyoyo.jpg';
 
 export const assets = {
     phone,
@@ -48,4 +49,5 @@ export const assets = {
     generalpets,
     menu,
     close,
+    catyoyo
 };

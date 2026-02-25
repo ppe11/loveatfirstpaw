@@ -153,6 +153,7 @@ export async function GET(request: Request) {
       // Return sample data if token fetch fails
       return NextResponse.json({ 
         shelters: getSampleShelters(),
+        source: "fallback",
         pagination: {
           count_per_page: 20,
           total_count: getSampleShelters().length,
@@ -205,6 +206,7 @@ export async function GET(request: Request) {
         if (response.status === 400 || (!location && !name)) {
           return NextResponse.json({ 
             shelters: getSampleShelters(),
+            source: "fallback",
             pagination: {
               count_per_page: 20,
               total_count: getSampleShelters().length,
@@ -254,6 +256,7 @@ export async function GET(request: Request) {
       // Return sample data if API fetch fails
       return NextResponse.json({ 
         shelters: getSampleShelters(),
+        source: "fallback",
         pagination: {
           count_per_page: 20,
           total_count: getSampleShelters().length,
@@ -267,6 +270,7 @@ export async function GET(request: Request) {
     // Return sample data for any other errors
     return NextResponse.json({ 
       shelters: getSampleShelters(),
+      source: "fallback",
       pagination: {
         count_per_page: 20,
         total_count: getSampleShelters().length,

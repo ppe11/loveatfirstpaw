@@ -24,6 +24,7 @@ const Shelters = () => {
   const [loadingMessage, setLoadingMessage] = useState("Loading shelters...");
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedShelterId, setSelectedShelterId] = useState(null);
+  const [dataSource, setDataSource] = useState("api")
 
   useEffect(() => {
     let timer;
@@ -76,6 +77,12 @@ const Shelters = () => {
         }
         
         const data = await response.json();
+
+        if (data.source === "fallback") {
+          setDataSource("fallback")
+        } else {
+          setDataSource("api")
+        }
         
         if (data.shelters && Array.isArray(data.shelters)) {
           // Save to session storage (cache for 30 minutes)
@@ -225,7 +232,11 @@ const Shelters = () => {
           </Button>
         </div>
       </div>
-
+      {dataSource === "fallback" && (
+      <div className="bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-3 rounded-lg text-center mt-4">
+        ⚠️ Petfinder API was decommissioned on December 2, 2025. Showing sample shelters.
+      </div>
+    )}
       {/* Interactive Map */}
       <div 
        className="w-full h-60 sm:h-72 md:h-80 lg:h-96 bg-gray-200 rounded-lg mt-6 overflow-hidden shadow-lg"

@@ -105,8 +105,20 @@ export async function GET(request: Request) {
     try {
       token = await getPetfinderToken();
     } catch (tokenError) {
-      // If authentication fails, return error response
-      return NextResponse.json({ error: 'Failed to fetch pets' }, { status: 500 });
+      console.log("Petfinder token failed — using fallback pets.");
+
+      const fallbackPets = getSamplePets();
+
+      return NextResponse.json({
+        pets: fallbackPets,
+        source: "fallback",   
+        pagination: {
+          count_per_page: fallbackPets.length,
+          total_count: fallbackPets.length,
+          current_page: 1,
+          total_pages: 1
+        }
+      });
     }
 
     // Parse URL and extract search parameters
@@ -355,8 +367,20 @@ export async function GET(request: Request) {
         pagination: pagination
       });
     } catch (error) {
-
-      return NextResponse.json({ error: 'Failed to fetch pets' }, { status: 500 });
+      console.log("Petfinder fetch failed — using fallback pets.");
+    
+      const fallbackPets = getSamplePets();
+    
+      return NextResponse.json({
+        pets: fallbackPets,
+        source: "fallback",  
+        pagination: {
+          count_per_page: fallbackPets.length,
+          total_count: fallbackPets.length,
+          current_page: 1,
+          total_pages: 1
+        }
+      });
     }
 
   } catch (error) {
@@ -378,83 +402,194 @@ function getSamplePets(filterType?: string | null): SimplifiedPet[] {
       name: 'Buddy',
       photos: [
         {
-          small: 'https://placedog.net/100/100',
-          medium: 'https://placedog.net/300/300',
-          large: 'https://placedog.net/600/600',
-          full: 'https://placedog.net/1000/1000'
+          small: 'https://picsum.photos/id/237/100/100',
+          medium: 'https://picsum.photos/id/237/300/300',
+          large: 'https://picsum.photos/id/237/600/600',
+          full: 'https://picsum.photos/id/237/1000/1000'
         }
       ]
     },
+  
     {
       id: 102,
       type: 'cat',
-      breed: 'Domestic Short Hair',
-      age: 'Adult',
-      gender: 'Female',
+      breed: 'Tabby',
+      age: 'Young',
+      gender: 'Male',
       size: 'Medium',
-      name: 'Whiskers',
+      name: 'Oyoyo',
       photos: [
         {
-          small: 'https://placekitten.com/100/100',
-          medium: 'https://placekitten.com/300/300',
-          large: 'https://placekitten.com/600/600',
-          full: 'https://placekitten.com/1000/1000'
+          small: '/catyoyo.jpg',
+          medium: '/catyoyo.jpg',
+          large: '/catyoyo.jpg',
+          full: '/catyoyo.jpg'
         }
       ]
     },
+  
+    {
+      id: 211,
+      type: 'hamster',
+      breed: 'Syrian Hamster',
+      age: 'Young',
+      gender: 'Unknown',
+      size: 'Small',
+      name: 'Nibbles',
+      photos: [
+        {
+          small: 'https://images.unsplash.com/photo-1657398756153-fdcf62327b1c?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1657398756153-fdcf62327b1c?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1657398756153-fdcf62327b1c?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1657398756153-fdcf62327b1c?auto=format&fit=crop&w=1200&q=80'
+        }
+      ]
+    },
+  
     {
       id: 103,
-      type: 'bird',
-      breed: 'Parakeet',
+      type: 'dog',
+      breed: 'Beagle',
       age: 'Young',
       gender: 'Male',
       size: 'Small',
       name: 'Tweety',
       photos: [
         {
-          small: 'https://picsum.photos/id/210/100/100',
-          medium: 'https://picsum.photos/id/210/300/300',
-          large: 'https://picsum.photos/id/210/600/600',
-          full: 'https://picsum.photos/id/210/1000/1000'
+          small: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80'
         }
       ]
     },
+  
     {
       id: 104,
-      type: 'small',
-      breed: 'Hamster',
+      type: 'cat',
+      breed: 'Domestic Short hair',
       age: 'Young',
       gender: 'Female',
       size: 'Small',
       name: 'Peanut',
       photos: [
         {
-          small: 'https://picsum.photos/id/1074/100/100',
-          medium: 'https://picsum.photos/id/1074/300/300',
-          large: 'https://picsum.photos/id/1074/600/600',
-          full: 'https://picsum.photos/id/1074/1000/1000'
+          small: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=1200&q=80'
         }
       ]
     },
+  
     {
       id: 105,
-      type: 'reptile',
-      breed: 'Gecko',
-      age: 'Adult',
-      gender: 'Male',
+      type: 'dog',
+      breed: 'French Bulldog',
+      age: 'Young',
+      gender: 'Female',
       size: 'Small',
-      name: 'Rex',
+      name: 'Snowball',
       photos: [
         {
-          small: 'https://picsum.photos/id/24/100/100',
-          medium: 'https://picsum.photos/id/24/300/300',
-          large: 'https://picsum.photos/id/24/600/600',
-          full: 'https://picsum.photos/id/24/1000/1000'
+          small: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=1200&q=80'
+        }
+      ]
+    },
+  
+    {
+      id: 201,
+      type: 'dog',
+      breed: 'Golden Retriever',
+      age: 'Young',
+      gender: 'Male',
+      size: 'Small',
+      name: 'Max',
+      photos: [
+        {
+          small: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=1200&q=80'
+        }
+      ]
+    },
+  
+    {
+      id: 202,
+      type: 'cat',
+      breed: 'Tabby',
+      age: 'Kitten',
+      gender: 'Female',
+      size: 'Small',
+      name: 'Luna',
+      photos: [
+        {
+          small: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=1200&q=80'
+        }
+      ]
+    },
+  
+    {
+      id: 204,
+      type: 'dog',
+      breed: 'Mixed Breed',
+      age: 'Adult',
+      gender: 'Male',
+      size: 'Medium',
+      name: 'Charlie',
+      photos: [
+        {
+          small: 'https://images.unsplash.com/photo-1721327900409-2393c686bc48?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1721327900409-2393c686bc48?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1721327900409-2393c686bc48?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1721327900409-2393c686bc48?auto=format&fit=crop&w=1200&q=80'
+        }
+      ]
+    },
+  
+    {
+      id: 206,
+      type: 'bird',
+      breed: 'Parrot',
+      age: 'Adult',
+      gender: 'Unknown',
+      size: 'Small',
+      name: 'Rio',
+      photos: [
+        {
+          small: 'https://images.unsplash.com/photo-1693218722743-eba71402ab37?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1693218722743-eba71402ab37?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1693218722743-eba71402ab37?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1693218722743-eba71402ab37?auto=format&fit=crop&w=1200&q=80'
+        }
+      ]
+    },
+  
+    {
+      id: 210,
+      type: 'cat',
+      breed: 'Domestic Shorthair',
+      age: 'Young',
+      gender: 'Male',
+      size: 'Small',
+      name: 'Whiskers',
+      photos: [
+        {
+          small: 'https://images.unsplash.com/photo-1739440665892-ccdb9c696a66?auto=format&fit=crop&w=200&q=80',
+          medium: 'https://images.unsplash.com/photo-1739440665892-ccdb9c696a66?auto=format&fit=crop&w=400&q=80',
+          large: 'https://images.unsplash.com/photo-1739440665892-ccdb9c696a66?auto=format&fit=crop&w=800&q=80',
+          full: 'https://images.unsplash.com/photo-1739440665892-ccdb9c696a66?auto=format&fit=crop&w=1200&q=80'
         }
       ]
     }
   ];
-  
   //If filter not all, apply filter to type
   if (filterType && filterType !== 'all') {
     return samplePets.filter(pet => pet.type === filterType);
