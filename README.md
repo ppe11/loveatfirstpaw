@@ -1,7 +1,8 @@
 # Love At First Paw - Adoption Website
 
 ## Videos and Website
-[Love At FIrst Paw Website, deployed with Vercel - .](https://love-at-first-paw-six.vercel.app)\
+Live Link - [Love At FIrst Paw Website, deployed with Vercel .](https://love-at-first-paw-six.vercel.app)\
+
 [Love At First Paw Video Demo](https://www.youtube.com/watch?v=2pronTOjmgk)\
 [Love At First Paw Planning Video](https://www.youtube.com/watch?v=47HbeDINck8)\
 [Love At First Paw Final Video](https://www.youtube.com/watch?v=fSDER6X2cjM)
