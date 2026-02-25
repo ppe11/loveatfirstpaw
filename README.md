@@ -1,11 +1,6 @@
 # Love At First Paw - Adoption Website
 
-## Videos and Website
-Live Link - [Love At FIrst Paw Website, deployed with Vercel .](https://love-at-first-paw-six.vercel.app)\
-
-[Love At First Paw Video Demo](https://www.youtube.com/watch?v=2pronTOjmgk)\
-[Love At First Paw Planning Video](https://www.youtube.com/watch?v=47HbeDINck8)\
-[Love At First Paw Final Video](https://www.youtube.com/watch?v=fSDER6X2cjM)
+Live Link - [Love At FIrst Paw Website, deployed with Vercel .](https://loveatfirstpaw.vercel.app)
 
 ## Project Overview
 Love At First Paw is an adoption website built with Next.js. It helps users find adoptable pets and shelters using the Petfinder API and provides map and direction services using Mapbox.
@@ -119,5 +114,12 @@ Before running the project locally, ensure you have the following installed:
   sudo chown -R $USER:$USER .
   ```
   inside the project directory first, this will give you full control over the files and should fix the permission error.
+
+## Videos and Website
+[Love At FIrst Paw Website, deployed with Vercel .](https://loveatfirstpaw.vercel.app)
+[Love At First Paw Video Demo](https://www.youtube.com/watch?v=2pronTOjmgk)\
+[Love At First Paw Planning Video](https://www.youtube.com/watch?v=47HbeDINck8)\
+[Love At First Paw Final Video](https://www.youtube.com/watch?v=fSDER6X2cjM)
+
 
 
