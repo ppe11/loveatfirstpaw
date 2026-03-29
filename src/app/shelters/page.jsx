@@ -266,49 +266,49 @@ const Shelters = () => {
       ) : shelters.length === 0 ? (
         <div className="text-center py-10">No shelters found. Try a different search.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-4">
-          {shelters.map((shelter) => (
-            <div 
-              key={shelter.id}
-              id={`shelter-${shelter.id}`}
-              className={`flex flex-col hover:shadow-xl h-fit hover:scale-105 transition duration-400 rounded-2xl ${selectedShelterId === shelter.id ? 'ring-2 ring-orange-500' : ''}`}
-            >
-              <Card className="flex bg-orange-100 p-4 rounded-2xl shadow-md ">
-                <div className="flex items-center gap-2">
-                  {/* Shelter Image */}
-                  <div className="w-40 h-40 bg-white rounded-lg flex items-center justify-center">
-                    {shelter.photos && shelter.photos.length > 0 ? (
-                      <img 
-                        src={shelter.photos[0].medium} 
-                        alt={shelter.name}
-                        className="w-full h-14/12 object-cover rounded-lg"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://placehold.co/150x150?text=🏠';
-                        }}
-                      />
-                    ) : (
-                      <span className="text-4xl">🏠</span>
-                    )}
-                  </div>
-                  {/* Shelter Info */}
-                  <CardContent className="flex-1 p-2">
-                    <h4 className="text-lg font-semibold">{shelter.name}</h4>
-                    <p className="text-sm">Contact: {shelter.contact}</p>
-                    <p className="text-sm">Location: {shelter.location}</p>
-                    <p className="text-sm">Open: {shelter.hours}</p>
-                    <Button 
-                      className="mt-4 bg-orange-500 hover:bg-orange-600 text-white w-full text-md rounded-2xl"
-                      onClick={() => handleViewShelter(shelter.id)}
-                    >
-                      View
-                    </Button>
-                  </CardContent>
-                </div>
-              </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-4 items-stretch">
+  {shelters.map((shelter) => (
+    <div
+      key={shelter.id}
+      id={`shelter-${shelter.id}`}
+      className={`h-full hover:shadow-xl hover:scale-105 transition duration-400 rounded-2xl ${
+        selectedShelterId === shelter.id ? 'ring-2 ring-orange-500' : ''
+      }`}
+    >
+      <Card className="h-full bg-orange-100 p-4 rounded-2xl shadow-md">
+        <div className="flex h-full gap-4 items-stretch">
+          <div className="w-40 h-40 shrink-0 bg-white rounded-lg flex items-center justify-center">
+            {shelter.photos && shelter.photos.length > 0 ? (
+              <img
+                src={shelter.photos[0].medium}
+                alt={shelter.name}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <span className="text-4xl">🏠</span>
+            )}
+          </div>
+
+          <CardContent className="flex flex-col justify-between flex-1 p-2">
+            <div>
+              <h4 className="text-lg font-semibold">{shelter.name}</h4>
+              <p className="text-sm">Contact: {shelter.contact}</p>
+              <p className="text-sm">Location: {shelter.location}</p>
+              <p className="text-sm">Open: {shelter.hours}</p>
             </div>
-          ))}
+
+            <Button
+              className="mt-4 bg-orange-500 hover:bg-orange-600 text-white w-full text-md rounded-2xl"
+              onClick={() => handleViewShelter(shelter.id)}
+            >
+              View
+            </Button>
+          </CardContent>
         </div>
+      </Card>
+    </div>
+  ))}
+</div>
       )}
     </div>
   )

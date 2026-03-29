@@ -105,8 +105,14 @@ const ResultsPage = () => {
       />
       <h2 className="text-3xl font-semibold mb-4">{pageTitle}</h2>
 
+      <div className="bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-3 rounded-lg text-center mb-6">
+        ⚠️ Petfinder API was decommissioned on December 2, 2025. Showing sample pets.
+      </div>
+
       {fallbackMessage && (
-        <p className="text-orange-500 text-lg mb-6 font-medium">{fallbackMessage}</p>
+        <div className="bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-3 rounded-lg text-center mb-6">
+          ⚠️ Petfinder API was decommissioned on December 2, 2025. Showing sample pets.
+        </div>
       )}
       
       <div className="mb-8">
