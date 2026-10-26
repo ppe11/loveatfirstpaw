@@ -26,18 +26,7 @@ export default function ShelterClientDetails({ shelter, backUrl }) {
         >
           Back
         </Link>
-        <div className="flex items-start gap-6 w-full md:w-2/3">
-          <div className="relative w-[180px] h-[180px] bg-white rounded-lg flex items-center justify-center overflow-hidden">
-            <Image
-              src={shelter.photos?.[0]?.medium || assets.icon_paw}
-              alt="shelter logo"
-              priority
-              fill
-              sizes='180px'
-              className="object-cover"
-            />
-          </div>
-
+        <div className="w-full md:w-2/3">
           <div className="flex flex-col space-y-3">
             <h1 className="text-3xl font-bold text-gray-800">{shelter.name}</h1>
             <hr className="border-t border-gray-300" />

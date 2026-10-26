@@ -5,6 +5,7 @@ const MAPBOX_BASE_URL = 'https://api.mapbox.com';
 const GEOCODING_ENDPOINT = '/geocoding/v5/mapbox.places';
 const DIRECTIONS_ENDPOINT = '/directions/v5/mapbox';
 const STATIC_IMAGE_ENDPOINT = '/styles/v1/mapbox/streets-v11/static';
+const SEARCHBOX_ENDPOINT = '/search/searchbox/v1';
 
 // Types for navigation profiles
 const NAVIGATION_PROFILES = {
@@ -66,6 +67,27 @@ export async function GET(request: NextRequest) {
         // Geocode the address using the Mapbox API
         const result = await geocodeAddress(address);
         mapboxCache.set(`geocode:${address}`, result);
+        return NextResponse.json(result);
+      }
+
+      case 'shelters': {
+        const location = searchParams.get('location')?.trim();
+        const name = searchParams.get('name')?.trim();
+
+        if (!location) {
+          return NextResponse.json(
+            { error: 'A city or postal code is required to find shelters' },
+            { status: 400 },
+          );
+        }
+
+        const cacheKey = `shelters:v4:${location}:${name || ''}`;
+        const cachedResult = mapboxCache.get(cacheKey);
+        if (cachedResult) return NextResponse.json(cachedResult);
+
+        const shelters = await findNearbyShelters(location, name);
+        const result = { shelters };
+        mapboxCache.set(cacheKey, result);
         return NextResponse.json(result);
       }
       
@@ -303,6 +325,88 @@ async function geocodeAddress(address: string) {
       relevance: feature.relevance,
     })),
   };
+}
+
+async function findNearbyShelters(location: string, name?: string) {
+  const locationResult = await geocodeAddress(location);
+  const coordinates = locationResult.features[0]?.coordinates;
+
+  if (!coordinates) {
+    throw new Error('Could not find that location');
+  }
+
+  const sessionToken = crypto.randomUUID();
+  const searchParams = new URLSearchParams({
+    q: name || 'animal shelter',
+    proximity: coordinates.join(','),
+    limit: '10',
+    session_token: sessionToken,
+    access_token: process.env.MAPBOX_KEY || '',
+  });
+
+  const suggestionsResponse = await fetch(
+    `${MAPBOX_BASE_URL}${SEARCHBOX_ENDPOINT}/suggest?${searchParams.toString()}`,
+    { cache: 'no-store' },
+  );
+
+  if (!suggestionsResponse.ok) {
+    throw new Error(`Shelter search error: ${suggestionsResponse.statusText}`);
+  }
+
+  const suggestionsData = await suggestionsResponse.json();
+  const suggestions = (suggestionsData.suggestions || []).filter((suggestion: any) => suggestion.mapbox_id);
+
+  const details = await Promise.allSettled(
+    suggestions.map(async (suggestion: any) => {
+      const detailParams = new URLSearchParams({
+        session_token: sessionToken,
+        access_token: process.env.MAPBOX_KEY || '',
+      });
+      const detailResponse = await fetch(
+        `${MAPBOX_BASE_URL}${SEARCHBOX_ENDPOINT}/retrieve/${encodeURIComponent(suggestion.mapbox_id)}?${detailParams.toString()}`,
+        { cache: 'no-store' },
+      );
+
+      if (!detailResponse.ok) throw new Error('Could not retrieve shelter details');
+
+      const detailData = await detailResponse.json();
+      const feature = detailData.features?.[0];
+      const properties = feature?.properties || {};
+
+      return {
+        id: suggestion.mapbox_id,
+        name: properties.name || suggestion.name,
+        location: properties.full_address || suggestion.full_address || suggestion.place_formatted || 'Address unavailable',
+        contact: properties.tel || 'Contact details unavailable',
+        hours: 'Hours unavailable',
+        email: null,
+        website: properties.website || null,
+        mission_statement: null,
+        coordinates: feature?.geometry?.coordinates,
+        searchSession: sessionToken,
+      };
+    }),
+  );
+
+  return details
+    .filter((result): result is PromiseFulfilledResult<any> => result.status === 'fulfilled')
+    .map((result) => result.value)
+    .filter((shelter) => shelter.coordinates)
+    .filter((shelter) => isWithinSearchArea(coordinates, shelter.coordinates));
+}
+
+function isWithinSearchArea(origin: [number, number], destination: [number, number]) {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const [originLon, originLat] = origin;
+  const [destinationLon, destinationLat] = destination;
+  const latitudeDistance = toRadians(destinationLat - originLat);
+  const longitudeDistance = toRadians(destinationLon - originLon);
+  const a = Math.sin(latitudeDistance / 2) ** 2
+    + Math.cos(toRadians(originLat)) * Math.cos(toRadians(destinationLat))
+    * Math.sin(longitudeDistance / 2) ** 2;
+  const distanceInKilometres = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return distanceInKilometres <= 100;
 }
 
 /**

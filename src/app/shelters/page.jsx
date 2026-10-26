@@ -24,7 +24,6 @@ const Shelters = () => {
   const [loadingMessage, setLoadingMessage] = useState("Loading shelters...");
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedShelterId, setSelectedShelterId] = useState(null);
-  const [dataSource, setDataSource] = useState("api")
 
   useEffect(() => {
     let timer;
@@ -57,8 +56,8 @@ const Shelters = () => {
       setError(null);
       
       try {
-        // Generate cache key for all shelters (no search params)
-        const cacheKey = 'petfinder_all_shelters';
+        const defaultLocation = 'Vancouver, BC';
+        const cacheKey = 'mapbox_shelters_vancouver_bc_v4';
         
         // Check if we have cached shelter data
         const cachedShelters = getFromSessionStorage(cacheKey);
@@ -71,21 +70,15 @@ const Shelters = () => {
         }
         
 
-        const response = await fetch('/api/shelters');
+        const response = await fetch(`/api/mapbox?action=shelters&location=${encodeURIComponent(defaultLocation)}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
         const data = await response.json();
 
-        if (data.source === "fallback") {
-          setDataSource("fallback")
-        } else {
-          setDataSource("api")
-        }
-        
         if (data.shelters && Array.isArray(data.shelters)) {
-          // Save to session storage (cache for 30 minutes)
+          // Save nearby results for 30 minutes.
           saveToSessionStorage(cacheKey, data.shelters, 30);
           setShelters(data.shelters);
         } else {
@@ -111,15 +104,14 @@ const Shelters = () => {
     setError(null);
 
     try {
-      // Build the URL with search parameters
-      const queryParams = new URLSearchParams();
-      if (locationSearch) queryParams.set('location', locationSearch);
-      if (nameSearch) queryParams.set('name', nameSearch);
+      const searchLocation = locationSearch.trim() || 'Vancouver, BC';
+      const queryParams = new URLSearchParams({ location: searchLocation });
+      if (nameSearch.trim()) queryParams.set('name', nameSearch.trim());
       
       // Generate a cache key based on search parameters
-      const cacheKey = generateCacheKey('petfinder_shelters_search', {
-        location: locationSearch,
-        name: nameSearch
+      const cacheKey = generateCacheKey('mapbox_shelters_search_v4', {
+        location: searchLocation,
+        name: nameSearch.trim(),
       });
       
       // Check if we have cached search results
@@ -131,7 +123,7 @@ const Shelters = () => {
         return;
       }
       
-      const url = `/api/shelters${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `/api/mapbox?action=shelters&${queryParams.toString()}`;
 
       
       const response = await fetch(url);
@@ -140,7 +132,7 @@ const Shelters = () => {
       }
       
       const data = await response.json();
-      
+
       if (data.shelters && Array.isArray(data.shelters)) {
         // Save search results to session storage (cache for 15 minutes)
         saveToSessionStorage(cacheKey, data.shelters, 15);
@@ -159,9 +151,10 @@ const Shelters = () => {
   };
 
   // Handle view shelter details
-  const handleViewShelter = (shelterId) => {
+  const handleViewShelter = (shelter) => {
     setIsNavigating(true);
     setLoadingMessage("Loading shelter details...");
+    saveToSessionStorage(`mapbox_shelter_${shelter.id}`, shelter, 60);
     
     // Create a smooth loading animation
     setLoadingProgress(10);
@@ -173,6 +166,7 @@ const Shelters = () => {
     
     // Navigate after a short delay to allow the loading animation to be seen
     setTimeout(() => {
+      const shelterId = encodeURIComponent(shelter.id);
       router.push(`/shelters/${shelterId}?backUrl=${backUrl}`);
     }, 600);
   };
@@ -232,11 +226,6 @@ const Shelters = () => {
           </Button>
         </div>
       </div>
-      {dataSource === "fallback" && (
-      <div className="bg-yellow-100 text-yellow-800 border border-yellow-300 px-4 py-3 rounded-lg text-center mt-4">
-        ⚠️ Petfinder API was decommissioned on December 2, 2025. Showing sample shelters.
-      </div>
-    )}
       {/* Interactive Map */}
       <div 
        className="w-full h-60 sm:h-72 md:h-80 lg:h-96 bg-gray-200 rounded-lg mt-6 overflow-hidden shadow-lg"
@@ -266,49 +255,49 @@ const Shelters = () => {
       ) : shelters.length === 0 ? (
         <div className="text-center py-10">No shelters found. Try a different search.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-4 items-stretch">
-  {shelters.map((shelter) => (
-    <div
-      key={shelter.id}
-      id={`shelter-${shelter.id}`}
-      className={`h-full hover:shadow-xl hover:scale-105 transition duration-400 rounded-2xl ${
-        selectedShelterId === shelter.id ? 'ring-2 ring-orange-500' : ''
-      }`}
-    >
-      <Card className="h-full bg-orange-100 p-4 rounded-2xl shadow-md">
-        <div className="flex h-full gap-4 items-stretch">
-          <div className="w-40 h-40 shrink-0 bg-white rounded-lg flex items-center justify-center">
-            {shelter.photos && shelter.photos.length > 0 ? (
-              <img
-                src={shelter.photos[0].medium}
-                alt={shelter.name}
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <span className="text-4xl">🏠</span>
-            )}
-          </div>
-
-          <CardContent className="flex flex-col justify-between flex-1 p-2">
-            <div>
-              <h4 className="text-lg font-semibold">{shelter.name}</h4>
-              <p className="text-sm">Contact: {shelter.contact}</p>
-              <p className="text-sm">Location: {shelter.location}</p>
-              <p className="text-sm">Open: {shelter.hours}</p>
-            </div>
-
-            <Button
-              className="mt-4 bg-orange-500 hover:bg-orange-600 text-white w-full text-md rounded-2xl"
-              onClick={() => handleViewShelter(shelter.id)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-4">
+          {shelters.map((shelter) => (
+            <div 
+              key={shelter.id}
+              id={`shelter-${shelter.id}`}
+              className={`flex flex-col hover:shadow-xl h-fit hover:scale-105 transition duration-400 rounded-2xl ${selectedShelterId === shelter.id ? 'ring-2 ring-orange-500' : ''}`}
             >
-              View
-            </Button>
-          </CardContent>
+              <Card className="flex bg-orange-100 p-4 rounded-2xl shadow-md ">
+                <div className="flex items-center gap-2">
+                  {/* Shelter Image */}
+                  <div className="w-40 h-40 bg-white rounded-lg flex items-center justify-center">
+                    {shelter.photos && shelter.photos.length > 0 ? (
+                      <img 
+                        src={shelter.photos[0].medium} 
+                        alt={shelter.name}
+                        className="w-full h-14/12 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://placehold.co/150x150?text=🏠';
+                        }}
+                      />
+                    ) : (
+                      <span className="text-4xl">🏠</span>
+                    )}
+                  </div>
+                  {/* Shelter Info */}
+                  <CardContent className="flex-1 p-2">
+                    <h4 className="text-lg font-semibold">{shelter.name}</h4>
+                    <p className="text-sm">Contact: {shelter.contact}</p>
+                    <p className="text-sm">Location: {shelter.location}</p>
+                    <p className="text-sm">Open: {shelter.hours}</p>
+                    <Button 
+                      className="mt-4 bg-orange-500 hover:bg-orange-600 text-white w-full text-md rounded-2xl"
+                      onClick={() => handleViewShelter(shelter)}
+                    >
+                      View
+                    </Button>
+                  </CardContent>
+                </div>
+              </Card>
+            </div>
+          ))}
         </div>
-      </Card>
-    </div>
-  ))}
-</div>
       )}
     </div>
   )

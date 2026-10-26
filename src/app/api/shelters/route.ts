@@ -121,12 +121,12 @@ async function getPetfinderToken(): Promise<string> {
   const response = await fetch('https://api.petfinder.com/v2/oauth2/token', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: JSON.stringify({
+    body: new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: process.env.PETFINDER_KEY,
-      client_secret: process.env.PETFINDER_SECRET,
+      client_id: process.env.PETFINDER_KEY || '',
+      client_secret: process.env.PETFINDER_SECRET || '',
     }),
   });
 
@@ -144,6 +144,10 @@ async function getPetfinderToken(): Promise<string> {
  * @returns {Promise<NextResponse>} A promise that resolves to the NextResponse object containing shelter data or an error message.
  */
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const location = url.searchParams.get('location') || undefined;
+  const name = url.searchParams.get('name') || undefined;
+
   try {
     // Try to get a token for the Petfinder API
     let token;
@@ -151,23 +155,11 @@ export async function GET(request: Request) {
       token = await getPetfinderToken();
     } catch (tokenError) {
       // Return sample data if token fetch fails
-      return NextResponse.json({ 
-        shelters: getSampleShelters(),
-        source: "fallback",
-        pagination: {
-          count_per_page: 20,
-          total_count: getSampleShelters().length,
-          current_page: 1,
-          total_pages: 1
-        }
-      });
+      return NextResponse.json(getFallbackResponse(location, name));
     }
 
     // Parse the request URL to get query parameters
-    const url = new URL(request.url);
     const { searchParams } = url;
-    const location = searchParams.get('location') || undefined;
-    const name = searchParams.get('name') || undefined;
     
     const state = searchParams.get('state') || undefined;
     const country = searchParams.get('country') || undefined;
@@ -204,16 +196,7 @@ export async function GET(request: Request) {
       // Check if the response is ok
       if (!response.ok) {
         if (response.status === 400 || (!location && !name)) {
-          return NextResponse.json({ 
-            shelters: getSampleShelters(),
-            source: "fallback",
-            pagination: {
-              count_per_page: 20,
-              total_count: getSampleShelters().length,
-              current_page: 1,
-              total_pages: 1
-            }
-          });
+          return NextResponse.json(getFallbackResponse(location, name));
         }
         throw new Error(`API error: ${response.statusText}`);
       }
@@ -254,30 +237,12 @@ export async function GET(request: Request) {
       });
     } catch (error) {
       // Return sample data if API fetch fails
-      return NextResponse.json({ 
-        shelters: getSampleShelters(),
-        source: "fallback",
-        pagination: {
-          count_per_page: 20,
-          total_count: getSampleShelters().length,
-          current_page: 1,
-          total_pages: 1
-        }
-      });
+      return NextResponse.json(getFallbackResponse(location, name));
     }
 
   } catch (error) {
     // Return sample data for any other errors
-    return NextResponse.json({ 
-      shelters: getSampleShelters(),
-      source: "fallback",
-      pagination: {
-        count_per_page: 20,
-        total_count: getSampleShelters().length,
-        current_page: 1,
-        total_pages: 1
-      }
-    });
+    return NextResponse.json(getFallbackResponse(location, name));
   }
 }
 
@@ -331,7 +296,37 @@ function formatHours(hours: PetfinderOrganizationHours | null): string {
     .join(', ') || 'Hours not available';
 }
 
-// Fallback sample data when API fails
+function getFallbackResponse(location?: string, name?: string) {
+  const nameTerm = name?.trim().toLowerCase();
+  const locationTerm = location?.trim().toLowerCase();
+  const allShelters = getSampleShelters();
+
+  let shelters = nameTerm
+    ? allShelters.filter((shelter) => shelter.name.toLowerCase().includes(nameTerm))
+    : allShelters;
+
+  if (locationTerm && !nameTerm) {
+    const locationMatches = allShelters.filter((shelter) =>
+      shelter.location.toLowerCase().includes(locationTerm),
+    );
+
+    // Keep the sample map populated for locations that are not represented in the demo data.
+    if (locationMatches.length) shelters = locationMatches;
+  }
+
+  return {
+    shelters,
+    source: 'fallback',
+    pagination: {
+      count_per_page: shelters.length,
+      total_count: shelters.length,
+      current_page: 1,
+      total_pages: 1,
+    },
+  };
+}
+
+// Fallback sample data when Petfinder credentials are unavailable.
 function getSampleShelters(): SimplifiedShelter[] {
   return [
     { 

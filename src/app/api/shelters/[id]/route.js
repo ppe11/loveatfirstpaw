@@ -23,11 +23,11 @@ export async function GET(request, { params }) {
     // Get access token
     const tokenRes = await fetch('https://api.petfinder.com/v2/oauth2/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
         grant_type: 'client_credentials',
-        client_id: process.env.PETFINDER_KEY,
-        client_secret: process.env.PETFINDER_SECRET,
+        client_id: process.env.PETFINDER_KEY || '',
+        client_secret: process.env.PETFINDER_SECRET || '',
       }),
     });
 
